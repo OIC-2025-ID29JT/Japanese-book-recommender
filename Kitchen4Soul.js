@@ -1,20 +1,19 @@
 // 1. Paste your Application ID here
 const APP_ID = 'a3d6b19e-ca16-429d-8c22-1884ec8fcfc1'; 
+const AFFILIATE_ID = '55bee4560eb34bc255bee457684e0d45'; 
 
 // 2. Add an event listener to the button
 document.getElementById('searchBtn').addEventListener('click', async () => {
-    const genreId = document.getElementById('genreSelect').value;
+    const genreSelect = document.getElementById('genreSelect');
+    const selectedKeyword = genreSelect.options[genreSelect.selectedIndex].text;
     const resultsDiv = document.getElementById('results');
     
     // Show a loading message
     resultsDiv.innerHTML = '<p>Loading books...</p>';
 
-    // 3. Construct the API URL
-    // 3. Construct the API URL
-// Replace 'YOUR_AFFILIATE_ID_HERE' with the code from your portal
-const AFFILIATE_ID = '55bee4560eb34bc255bee457684e0d45'; 
-// TEMPORARY TEST: Use keyword search instead of genreId
-const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${encodeURIComponent(APP_ID)}&affiliateId=${encodeURIComponent(AFFILIATE_ID)}&booksGenreId=${encodeURIComponent(genreId)}&hits=10&format=json`;
+    // 3. Construct the API URL using keyword search instead of genreId to avoid 400 errors
+    const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${encodeURIComponent(APP_ID)}&affiliateId=${encodeURIComponent(AFFILIATE_ID)}&keyword=${encodeURIComponent(selectedKeyword)}&hits=10&format=json`;
+
     try {
         // 4. Fetch the data from Rakuten
         const response = await fetch(url);
@@ -40,10 +39,10 @@ const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?a
                 resultsDiv.appendChild(card);
             });
         } else {
-            resultsDiv.innerHTML = '<p>No books found for this genre.</p>';
+            resultsDiv.innerHTML = '<p>No books found for this keyword.</p>';
         }
     } catch (error) {
         console.error('Error fetching data:', error);
-        resultsDiv.innerHTML = '<p>Failed to load books. Please check your API ID.</p>';
+        resultsDiv.innerHTML = '<p>Failed to load books. Please check your console for details.</p>';
     }
 });
