@@ -2,19 +2,85 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Japanese Book Finder</title>
-    <link rel="stylesheet" href="Kitchen4Soul.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Book Recommender</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Kitchen4Soul.css?v=2">
 </head>
 <body>
-    <h1>Book Recommendation</h1>
-    <select id="genreSelect">
-        <option value="001004008">Novel (小説)</option>
-        <option value="001001">Business (ビジネス)</option>
-        <option value="001009">Comics (コミック)</option>
-    </select>
-    <button id="searchBtn">Search Books</button>
-    
-    <div id="results" class="book-container"></div>
+    <header class="app-header">
+        <div class="logo">
+            <span class="logo-icon">📚</span>
+            <h1 id="logoText">Kitchen4Soul</h1>
+        </div>
+        <nav class="app-nav">
+            <button id="tabDiscover" class="nav-btn active">Discover</button>
+            <button id="tabWishlist" class="nav-btn">Wishlist <span id="wishlistCount" class="badge">0</span></button>
+        </nav>
+        <button id="langToggle" class="lang-toggle-btn">EN</button>
+    </header>
+
+    <main class="app-container">
+        <!-- Discover View -->
+        <section id="viewDiscover" class="view-section">
+            <div class="hero-section">
+                <h2 id="heroTitle">Find Your Next Read</h2>
+                <p id="heroSubtitle">Explore top Japanese books curated directly from Rakuten Books</p>
+            </div>
+
+            <!-- Search Panel -->
+            <div class="search-panel">
+                <div class="control-group">
+                    <label id="labelGenre" for="genreSelect">Genre</label>
+                    <select id="genreSelect">
+                        <option value="001004008" data-en="Novel" data-ja="小説">Novel (小説)</option>
+                        <option value="001001" data-en="Business" data-ja="ビジネス">Business (ビジネス)</option>
+                        <option value="001009" data-en="Comics" data-ja="コミック">Comics (コミック)</option>
+                        <option value="001008" data-en="Light Novel" data-ja="ライトノベル">Light Novel (ライトノベル)</option>
+                        <option value="001005" data-en="IT & Computers" data-ja="コンピュータ・IT">IT & Computers (コンピュータ・IT)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label id="labelKeyword" for="keywordInput">Keyword</label>
+                    <input type="text" id="keywordInput" placeholder="Search title, author...">
+                </div>
+
+                <div class="control-group">
+                    <label id="labelSort" for="sortSelect">Sort By</label>
+                    <select id="sortSelect">
+                        <option value="standard" data-en="Standard" data-ja="標準">Standard (標準)</option>
+                        <option value="-reviewAverage" data-en="Highest Rating" data-ja="評価順">Highest Rating (評価順)</option>
+                        <option value="-reviewCount" data-en="Most Reviewed" data-ja="レビュー件数順">Most Reviewed (レビュー件数順)</option>
+                        <option value="+itemPrice" data-en="Price: Low to High" data-ja="価格の安い順">Price: Low to High (価格の安い順)</option>
+                    </select>
+                </div>
+
+                <div class="control-group btn-group">
+                    <button id="searchBtn" class="primary-btn">Search Books</button>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="results" class="book-grid"></div>
+        </section>
+
+        <!-- Wishlist View -->
+        <section id="viewWishlist" class="view-section hidden">
+            <div class="hero-section">
+                <h2 id="wishlistTitle">My Wishlist</h2>
+                <p id="wishlistSubtitle">Your saved books to read later</p>
+            </div>
+            <div id="wishlistResults" class="book-grid"></div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 Kitchen4Soul. Powered by Rakuten Web Service.</p>
+    </footer>
 
     <script src="Kitchen4Soul.js?v=2"></script>
 </body>

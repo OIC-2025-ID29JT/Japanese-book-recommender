@@ -1,51 +1,338 @@
-// 1. Paste your credentials here from the Rakuten Developer Portal
+// 1. Credentials from the Rakuten Developer Portal
 const APP_ID = 'a3d6b19e-ca16-429d-8c22-1884ec8fcfc1'; 
-const ACCESS_KEY = 'pk_53YVJeQjIn1OaMlgzlG1Ol4zZaUIcW4iNZT1v28oOpB'; // Click the eye icon next to Access Key in your portal, copy it, and paste it here
+const ACCESS_KEY = 'pk_53YVJeQjIn1OaMlgzlG1Ol4zZaUIcW4iNZT1v28oOpB'; 
 const AFFILIATE_ID = '55bee456.0eb34bc2.55bee457.684e0d45'; 
 
-// 2. Add an event listener to the button
-document.getElementById('searchBtn').addEventListener('click', async () => {
-    const genreSelect = document.getElementById('genreSelect');
-    const selectedGenreId = genreSelect.value;
-    const resultsDiv = document.getElementById('results');
-    
-    // Show a loading message
-    resultsDiv.innerHTML = '<p>Loading books...</p>';
+// 2. Bilingual Translation Dictionary
+const TRANSLATIONS = {
+    ja: {
+        logoText: "Kitchen4Soul",
+        heroTitle: "あなたにぴったりの一冊を",
+        heroSubtitle: "楽天ブックスの膨大なデータからおすすめの和書を探す",
+        wishlistTitle: "マイリスト",
+        wishlistSubtitle: "後で読みたい保存した本",
+        labelGenre: "ジャンル",
+        labelKeyword: "キーワード",
+        labelSort: "並び順",
+        searchBtn: "本を検索する",
+        loading: "書籍を読み込み中...",
+        noResults: "該当する書籍が見つかりませんでした。",
+        noWishlist: "マイリストが空です。本を探して保存しましょう！",
+        author: "著者",
+        reviews: "件のレビュー",
+        noReviews: "レビューなし",
+        viewDetails: "詳細を楽天で見る",
+        share: "シェア",
+        copied: "コピーしました！",
+        showSynopsis: "あらすじを読む",
+        hideSynopsis: "閉じる",
+        translatePage: "英語に翻訳して見る"
+    },
+    en: {
+        logoText: "Kitchen4Soul",
+        heroTitle: "Find Your Next Read",
+        heroSubtitle: "Explore top Japanese books curated directly from Rakuten Books",
+        wishlistTitle: "My Wishlist",
+        wishlistSubtitle: "Your saved books to read later",
+        labelGenre: "Genre",
+        labelKeyword: "Keyword",
+        labelSort: "Sort By",
+        searchBtn: "Search Books",
+        loading: "Loading books...",
+        noResults: "No books found for this search.",
+        noWishlist: "Your wishlist is empty. Discover books and add them here!",
+        author: "Author",
+        reviews: "reviews",
+        noReviews: "No reviews",
+        viewDetails: "View on Rakuten",
+        share: "Share",
+        copied: "Copied!",
+        showSynopsis: "Read Synopsis",
+        hideSynopsis: "Close",
+        translatePage: "Translate page to English"
+    }
+};
 
-    // 3. Construct the API URL using the new openapi domain and accessKey parameter
-    const url = `https://openapi.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${encodeURIComponent(APP_ID)}&accessKey=${encodeURIComponent(ACCESS_KEY)}&affiliateId=${encodeURIComponent(AFFILIATE_ID)}&booksGenreId=${encodeURIComponent(selectedGenreId)}&hits=10&format=json`;
+// 3. UI States
+let currentLang = localStorage.getItem('lang') || 'ja';
+let activeTab = 'discover';
+let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+
+// 4. Initialize Application
+document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
+    updateUIForLanguage();
+    updateWishlistCount();
+    
+    // Perform initial automatic search to populate the homepage
+    searchBooks();
+});
+
+// 5. Setup Listeners
+function setupEventListeners() {
+    // Language Toggle
+    const langBtn = document.getElementById('langToggle');
+    langBtn.addEventListener('click', () => {
+        currentLang = currentLang === 'ja' ? 'en' : 'ja';
+        localStorage.setItem('lang', currentLang);
+        updateUIForLanguage();
+    });
+
+    // Tab Switching
+    document.getElementById('tabDiscover').addEventListener('click', (e) => switchTab('discover'));
+    document.getElementById('tabWishlist').addEventListener('click', (e) => switchTab('wishlist'));
+
+    // Search Trigger
+    document.getElementById('searchBtn').addEventListener('click', () => searchBooks());
+}
+
+// 6. Translate / Update Labels
+function updateUIForLanguage() {
+    const lang = TRANSLATIONS[currentLang];
+    
+    // Header & Toggle
+    document.getElementById('langToggle').innerText = currentLang === 'ja' ? 'EN' : '日本語';
+    document.getElementById('logoText').innerText = lang.logoText;
+    
+    // Labels & Buttons
+    document.getElementById('labelGenre').innerText = lang.labelGenre;
+    document.getElementById('labelKeyword').innerText = lang.labelKeyword;
+    document.getElementById('labelSort').innerText = lang.labelSort;
+    document.getElementById('searchBtn').innerText = lang.searchBtn;
+    
+    // Hero titles
+    document.getElementById('heroTitle').innerText = lang.heroTitle;
+    document.getElementById('heroSubtitle').innerText = lang.heroSubtitle;
+    document.getElementById('wishlistTitle').innerText = lang.wishlistTitle;
+    document.getElementById('wishlistSubtitle').innerText = lang.wishlistSubtitle;
+
+    // Dropdown selects
+    updateDropdownOptions('genreSelect');
+    updateDropdownOptions('sortSelect');
+
+    // Update keyword placeholder
+    document.getElementById('keywordInput').placeholder = currentLang === 'ja' ? '書籍名、著者名など...' : 'Search title, author...';
+
+    // Rerender book lists to apply card-level translations (e.g. Buttons labels)
+    if (activeTab === 'wishlist') {
+        renderWishlist();
+    }
+}
+
+function updateDropdownOptions(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    Array.from(select.options).forEach(option => {
+        const jaText = option.getAttribute('data-ja');
+        const enText = option.getAttribute('data-en');
+        if (currentLang === 'ja') {
+            option.text = `${jaText} (${enText})`;
+        } else {
+            option.text = `${enText} (${jaText})`;
+        }
+    });
+}
+
+// 7. Tab Switch Router
+function switchTab(tabName) {
+    activeTab = tabName;
+    
+    const discoverBtn = document.getElementById('tabDiscover');
+    const wishlistBtn = document.getElementById('tabWishlist');
+    const discoverView = document.getElementById('viewDiscover');
+    const wishlistView = document.getElementById('viewWishlist');
+
+    if (tabName === 'discover') {
+        discoverBtn.classList.add('active');
+        wishlistBtn.classList.remove('active');
+        discoverView.classList.remove('hidden');
+        wishlistView.classList.add('hidden');
+    } else {
+        discoverBtn.classList.remove('active');
+        wishlistBtn.classList.add('active');
+        discoverView.classList.add('hidden');
+        wishlistView.classList.remove('hidden');
+        renderWishlist();
+    }
+}
+
+// 8. Call API & Render Search Results
+async function searchBooks() {
+    const genreId = document.getElementById('genreSelect').value;
+    const keyword = document.getElementById('keywordInput').value.trim();
+    const sort = document.getElementById('sortSelect').value;
+    const resultsDiv = document.getElementById('results');
+    const lang = TRANSLATIONS[currentLang];
+
+    resultsDiv.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">${lang.loading}</p>`;
+
+    // Build URL Parameters
+    let url = `https://openapi.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${encodeURIComponent(APP_ID)}&accessKey=${encodeURIComponent(ACCESS_KEY)}&affiliateId=${encodeURIComponent(AFFILIATE_ID)}&booksGenreId=${encodeURIComponent(genreId)}&hits=12&format=json`;
+    
+    if (keyword) {
+        url += `&keyword=${encodeURIComponent(keyword)}`;
+    }
+    
+    if (sort !== 'standard') {
+        url += `&sort=${encodeURIComponent(sort)}`;
+    }
 
     try {
-        // 4. Fetch the data from Rakuten
         const response = await fetch(url);
         const data = await response.json();
-
-        console.log("Full API Response:", data);
-
-        // Clear the loading message
         resultsDiv.innerHTML = '';
 
-        // 5. Check if we got items back
         if (data.Items && data.Items.length > 0) {
             data.Items.forEach(item => {
                 const book = item.Item;
-                
-                // Create a card for each book
-                const card = document.createElement('div');
-                card.className = 'book-card';
-                card.innerHTML = `
-                    <img src="${book.mediumImageUrl}" alt="Cover">
-                    <h3>${book.title}</h3>
-                    <p>Author: ${book.author}</p>
-                    <a href="${book.itemUrl}" target="_blank">View on Rakuten</a>
-                `;
+                const card = createBookCard(book);
                 resultsDiv.appendChild(card);
             });
         } else {
-            resultsDiv.innerHTML = '<p>No books found for this genre.</p>';
+            resultsDiv.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">${lang.noResults}</p>`;
         }
     } catch (error) {
         console.error('Error fetching data:', error);
-        resultsDiv.innerHTML = '<p>Failed to load books. Please check your console for details.</p>';
+        resultsDiv.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--danger-color);">API Query Failed. Please check console.</p>`;
     }
-});
+}
+
+// 9. Card Builder HTML
+function createBookCard(book) {
+    const card = document.createElement('div');
+    card.className = 'book-card';
+    
+    const lang = TRANSLATIONS[currentLang];
+    
+    // Ratings stars mapping
+    const reviewAverage = parseFloat(book.reviewAverage) || 0;
+    const reviewCount = parseInt(book.reviewCount) || 0;
+    const starsHtml = getStarsHtml(reviewAverage);
+    const ratingLabel = reviewCount > 0 ? `${reviewAverage} (${reviewCount} ${lang.reviews})` : lang.noReviews;
+
+    // Check if book is already in wishlist
+    const isSaved = wishlist.some(item => item.isbn === book.isbn);
+    const wishlistClass = isSaved ? 'wishlist-btn active' : 'wishlist-btn';
+
+    // Format itemCaption
+    const synopsisText = book.itemCaption ? book.itemCaption.replace(/\n/g, '<br>') : '';
+    
+    // Translation link helper for English mode
+    const translateLinkHtml = currentLang === 'en' 
+        ? `<a href="https://translate.google.com/translate?sl=ja&tl=en&u=${encodeURIComponent(book.itemUrl)}" target="_blank" class="translation-link">🌐 ${lang.translatePage}</a>` 
+        : '';
+
+    card.innerHTML = `
+        <div class="card-media">
+            <img src="${book.mediumImageUrl || 'https://via.placeholder.com/120x160?text=No+Cover'}" alt="${book.title}" loading="lazy">
+        </div>
+        <div class="card-rating">
+            <span class="stars">${starsHtml}</span>
+            <span class="rating-count">${ratingLabel}</span>
+        </div>
+        <h3>${book.title}</h3>
+        <p class="card-author">${lang.author}: ${book.author || '---'}</p>
+        
+        ${synopsisText ? `
+            <button class="synopsis-toggle-btn"><span>▶</span> ${lang.showSynopsis}</button>
+            <div class="synopsis-content">${synopsisText}</div>
+        ` : ''}
+
+        <div class="card-actions">
+            <a href="${book.itemUrl}" target="_blank" class="card-btn card-btn-primary">${lang.viewDetails}</a>
+            <button class="card-btn card-btn-secondary share-btn">${lang.share}</button>
+            <button class="${wishlistClass}" title="Wishlist">❤️</button>
+        </div>
+        ${translateLinkHtml}
+    `;
+
+    // 10. Card Sub-Interactions Event Listeners
+    
+    // Expand/Collapse Synopsis
+    const toggleBtn = card.querySelector('.synopsis-toggle-btn');
+    const contentDiv = card.querySelector('.synopsis-content');
+    if (toggleBtn && contentDiv) {
+        toggleBtn.addEventListener('click', () => {
+            const isExpanded = contentDiv.classList.toggle('expanded');
+            toggleBtn.querySelector('span').innerText = isExpanded ? '▼' : '▶';
+            toggleBtn.querySelector('span').nextSibling.textContent = ` ${isExpanded ? lang.hideSynopsis : lang.showSynopsis}`;
+        });
+    }
+
+    // Share Book details
+    const shareBtn = card.querySelector('.share-btn');
+    shareBtn.addEventListener('click', () => {
+        const text = `📖 Recommend: "${book.title}" by ${book.author || 'Unknown'} - ${book.itemUrl}`;
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = shareBtn.innerText;
+            shareBtn.innerText = lang.copied;
+            shareBtn.style.color = '#10B981'; // Green accent
+            setTimeout(() => {
+                shareBtn.innerText = originalText;
+                shareBtn.style.color = '';
+            }, 2000);
+        });
+    });
+
+    // Wishlist Toggle button
+    const wishBtn = card.querySelector('.wishlist-btn');
+    wishBtn.addEventListener('click', () => {
+        toggleWishlist(book, wishBtn);
+    });
+
+    return card;
+}
+
+// 11. Stars Rating Helper
+function getStarsHtml(rating) {
+    const fullStars = Math.round(rating);
+    let starsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+        starsHtml += i <= fullStars ? '★' : '☆';
+    }
+    return starsHtml;
+}
+
+// 12. Wishlist Business Logic
+function toggleWishlist(book, buttonElement) {
+    const index = wishlist.findIndex(item => item.isbn === book.isbn);
+    
+    if (index === -1) {
+        // Save complete book structure to storage
+        wishlist.push(book);
+        buttonElement.classList.add('active');
+    } else {
+        wishlist.splice(index, 1);
+        buttonElement.classList.remove('active');
+        if (activeTab === 'wishlist') {
+            renderWishlist(); // Live remove if inside wishlist tab
+        }
+    }
+    
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    updateWishlistCount();
+}
+
+function updateWishlistCount() {
+    const badge = document.getElementById('wishlistCount');
+    if (badge) {
+        badge.innerText = wishlist.length;
+        badge.style.display = wishlist.length > 0 ? 'inline-block' : 'none';
+    }
+}
+
+function renderWishlist() {
+    const container = document.getElementById('wishlistResults');
+    const lang = TRANSLATIONS[currentLang];
+    
+    container.innerHTML = '';
+    
+    if (wishlist.length > 0) {
+        wishlist.forEach(book => {
+            const card = createBookCard(book);
+            container.appendChild(card);
+        });
+    } else {
+        container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); margin-top: 40px;">${lang.noWishlist}</p>`;
+    }
+}
