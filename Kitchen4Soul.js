@@ -1,18 +1,19 @@
-// 1. Paste your Application ID here
+// 1. Paste your credentials here from the Rakuten Developer Portal
 const APP_ID = 'a3d6b19e-ca16-429d-8c22-1884ec8fcfc1'; 
-const AFFILIATE_ID = '55bee4560eb34bc255bee457684e0d45'; 
+const ACCESS_KEY = 'pk_53YVJeQjIn1OaMlgzlG1Ol4zZaUIcW4iNZT1v28oOpB'; // Click the eye icon next to Access Key in your portal, copy it, and paste it here
+const AFFILIATE_ID = '55bee456.0eb34bc2.55bee457.684e0d45'; 
 
 // 2. Add an event listener to the button
 document.getElementById('searchBtn').addEventListener('click', async () => {
     const genreSelect = document.getElementById('genreSelect');
-    const selectedKeyword = genreSelect.options[genreSelect.selectedIndex].text;
+    const selectedGenreId = genreSelect.value;
     const resultsDiv = document.getElementById('results');
     
     // Show a loading message
     resultsDiv.innerHTML = '<p>Loading books...</p>';
 
-    // 3. Construct the API URL using keyword search instead of genreId to avoid 400 errors
-    const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${encodeURIComponent(APP_ID)}&affiliateId=${encodeURIComponent(AFFILIATE_ID)}&keyword=${encodeURIComponent(selectedKeyword)}&hits=10&format=json`;
+    // 3. Construct the API URL using the new openapi domain and accessKey parameter
+    const url = `https://openapi.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${encodeURIComponent(APP_ID)}&accessKey=${encodeURIComponent(ACCESS_KEY)}&affiliateId=${encodeURIComponent(AFFILIATE_ID)}&booksGenreId=${encodeURIComponent(selectedGenreId)}&hits=10&format=json`;
 
     try {
         // 4. Fetch the data from Rakuten
@@ -41,7 +42,7 @@ document.getElementById('searchBtn').addEventListener('click', async () => {
                 resultsDiv.appendChild(card);
             });
         } else {
-            resultsDiv.innerHTML = '<p>No books found for this keyword.</p>';
+            resultsDiv.innerHTML = '<p>No books found for this genre.</p>';
         }
     } catch (error) {
         console.error('Error fetching data:', error);
