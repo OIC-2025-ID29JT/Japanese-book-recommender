@@ -19,6 +19,8 @@ document.getElementById('searchBtn').addEventListener('click', async () => {
         const response = await fetch(url);
         const data = await response.json();
 
+        console.log("Full API Response:", data);
+
         // Clear the loading message
         resultsDiv.innerHTML = '';
 
