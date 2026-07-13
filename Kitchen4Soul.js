@@ -13,7 +13,8 @@ document.getElementById('searchBtn').addEventListener('click', async () => {
     // 3. Construct the API URL
 // Replace 'YOUR_AFFILIATE_ID_HERE' with the code from your portal
 const AFFILIATE_ID = '55bee456.0eb34bc2.55bee457.684e0d45'; 
-const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${APP_ID}&affiliateId=${AFFILIATE_ID}&booksGenreId=${genreId}&hits=10&format=json`;
+// TEMPORARY TEST: Use keyword search instead of genreId
+const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${APP_ID}&affiliateId=${AFFILIATE_ID}&keyword=python&hits=10&format=json`;
     try {
         // 4. Fetch the data from Rakuten
         const response = await fetch(url);
