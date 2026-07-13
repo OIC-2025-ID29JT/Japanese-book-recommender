@@ -1,5 +1,5 @@
 // 1. Paste your Application ID here
-const APP_ID = 'YOUR_APPLICATION_ID_HERE'; 
+const APP_ID = 'a3d6b19e-ca16-429d-8c22-1884ec8fcfc1'; 
 
 // 2. Add an event listener to the button
 document.getElementById('searchBtn').addEventListener('click', async () => {
@@ -10,9 +10,10 @@ document.getElementById('searchBtn').addEventListener('click', async () => {
     resultsDiv.innerHTML = '<p>Loading books...</p>';
 
     // 3. Construct the API URL
-    // We use the BooksTotal search API for broad results
-    const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${APP_ID}&booksGenreId=${genreId}&hits=10&format=json`;
-
+    // 3. Construct the API URL
+// Replace 'YOUR_AFFILIATE_ID_HERE' with the code from your portal
+const AFFILIATE_ID = '55bee456.0eb34bc2.55bee457.684e0d45'; 
+const url = `https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404?applicationId=${APP_ID}&affiliateId=${AFFILIATE_ID}&booksGenreId=${genreId}&hits=10&format=json`;
     try {
         // 4. Fetch the data from Rakuten
         const response = await fetch(url);
