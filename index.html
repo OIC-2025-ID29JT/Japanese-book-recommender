@@ -20,7 +20,10 @@
             <button id="tabDiscover" class="nav-btn active">Discover</button>
             <button id="tabWishlist" class="nav-btn">Wishlist <span id="wishlistCount" class="badge">0</span></button>
         </nav>
-        <button id="langToggle" class="lang-toggle-btn">EN</button>
+        <div class="header-controls">
+            <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">🌓</button>
+            <button id="langToggle" class="lang-toggle-btn">EN</button>
+        </div>
     </header>
 
     <main class="app-container">
@@ -36,11 +39,20 @@
                 <div class="control-group">
                     <label id="labelGenre" for="genreSelect">Genre</label>
                     <select id="genreSelect">
-                        <option value="001004008" data-en="Novel" data-ja="小説">Novel (小説)</option>
-                        <option value="001001" data-en="Business" data-ja="ビジネス">Business (ビジネス)</option>
-                        <option value="001009" data-en="Comics" data-ja="コミック">Comics (コミック)</option>
-                        <option value="001008" data-en="Light Novel" data-ja="ライトノベル">Light Novel (ライトノベル)</option>
+                        <option value="001" data-en="All Books" data-ja="すべての書籍">All Books (すべての書籍)</option>
+                        <option value="001004" data-en="Literature & Novel" data-ja="小説・エッセイ">Literature & Novel (小説・エッセイ)</option>
+                        <option value="001001" data-en="Comics & Manga" data-ja="コミック">Comics & Manga (コミック)</option>
+                        <option value="001006" data-en="Business & Economy" data-ja="ビジネス・経済・就職">Business & Economy (ビジネス・経済・就職)</option>
+                        <option value="001017" data-en="Light Novel" data-ja="ライトノベル">Light Novel (ライトノベル)</option>
                         <option value="001005" data-en="IT & Computers" data-ja="コンピュータ・IT">IT & Computers (コンピュータ・IT)</option>
+                        <option value="001009" data-en="Lifestyle & Cooking" data-ja="ライフスタイル・生活・料理">Lifestyle & Cooking (ライフスタイル・生活・料理)</option>
+                        <option value="001003" data-en="Children's Books" data-ja="絵本・児童書・図鑑">Children's Books (絵本・児童書・図鑑)</option>
+                        <option value="001008" data-en="Hobbies & Sports" data-ja="ホビー・スポーツ・美術">Hobbies & Sports (ホビー・スポーツ・美術)</option>
+                        <option value="001010" data-en="Art & Entertainment" data-ja="アート・エンタメ">Art & Entertainment (アート・エンタメ)</option>
+                        <option value="001007" data-en="Travel & Outdoors" data-ja="旅行・アウトドア">Travel & Outdoors (旅行・アウトドア)</option>
+                        <option value="001002" data-en="Languages & Study" data-ja="語学・学習参考書">Languages & Study (語学・学習参考書)</option>
+                        <option value="001016" data-en="Humanities & Social" data-ja="人文・思想・社会">Humanities & Social (人文・思想・社会)</option>
+                        <option value="001013" data-en="Science & Technology" data-ja="科学・技術">Science & Technology (科学・技術)</option>
                     </select>
                 </div>
 
@@ -53,9 +65,12 @@
                     <label id="labelSort" for="sortSelect">Sort By</label>
                     <select id="sortSelect">
                         <option value="standard" data-en="Standard" data-ja="標準">Standard (標準)</option>
-                        <option value="-reviewAverage" data-en="Highest Rating" data-ja="評価順">Highest Rating (評価順)</option>
-                        <option value="-reviewCount" data-en="Most Reviewed" data-ja="レビュー件数順">Most Reviewed (レビュー件数順)</option>
+                        <option value="sales" data-en="Popularity" data-ja="売上順">Popularity (売上順)</option>
+                        <option value="reviewAverage" data-en="Highest Rating" data-ja="評価順">Highest Rating (評価順)</option>
+                        <option value="reviewCount" data-en="Most Reviewed" data-ja="レビュー件数順">Most Reviewed (レビュー件数順)</option>
                         <option value="+itemPrice" data-en="Price: Low to High" data-ja="価格の安い順">Price: Low to High (価格の安い順)</option>
+                        <option value="-itemPrice" data-en="Price: High to Low" data-ja="価格の高い順">Price: High to Low (価格の高い順)</option>
+                        <option value="-releaseDate" data-en="Newest Releases" data-ja="新着順">Newest Releases (新着順)</option>
                     </select>
                 </div>
 

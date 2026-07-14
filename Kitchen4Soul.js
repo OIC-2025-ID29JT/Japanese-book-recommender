@@ -26,7 +26,10 @@ const TRANSLATIONS = {
         copied: "コピーしました！",
         showSynopsis: "あらすじを読む",
         hideSynopsis: "閉じる",
-        translatePage: "英語に翻訳して見る"
+        translatePage: "英語に翻訳して見る",
+        themeLightTitle: "テーマ: ライト (クリックで切替)",
+        themeDarkTitle: "テーマ: ダーク (クリックで切替)",
+        themeAutoTitle: "テーマ: 自動 (クリックで切替)"
     },
     en: {
         logoText: "Kitchen4Soul",
@@ -49,7 +52,10 @@ const TRANSLATIONS = {
         copied: "Copied!",
         showSynopsis: "Read Synopsis",
         hideSynopsis: "Close",
-        translatePage: "Translate page to English"
+        translatePage: "Translate page to English",
+        themeLightTitle: "Theme: Light (click to change)",
+        themeDarkTitle: "Theme: Dark (click to change)",
+        themeAutoTitle: "Theme: Auto (click to change)"
     }
 };
 
@@ -61,6 +67,7 @@ let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
 // 4. Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
+    initTheme();
     updateUIForLanguage();
     updateWishlistCount();
     
@@ -78,12 +85,22 @@ function setupEventListeners() {
         updateUIForLanguage();
     });
 
+    // Theme Toggle
+    const themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => toggleTheme());
+    }
+
     // Tab Switching
     document.getElementById('tabDiscover').addEventListener('click', (e) => switchTab('discover'));
     document.getElementById('tabWishlist').addEventListener('click', (e) => switchTab('wishlist'));
 
     // Search Trigger
     document.getElementById('searchBtn').addEventListener('click', () => searchBooks());
+
+    // Auto-refresh search when dropdown selection changes
+    document.getElementById('genreSelect').addEventListener('change', () => searchBooks());
+    document.getElementById('sortSelect').addEventListener('change', () => searchBooks());
 }
 
 // 6. Translate / Update Labels
@@ -112,6 +129,9 @@ function updateUIForLanguage() {
 
     // Update keyword placeholder
     document.getElementById('keywordInput').placeholder = currentLang === 'ja' ? '書籍名、著者名など...' : 'Search title, author...';
+
+    // Rerender theme button to apply correct language to title attribute
+    applyTheme(localStorage.getItem('theme') || 'auto');
 
     // Rerender book lists to apply card-level translations (e.g. Buttons labels)
     if (activeTab === 'wishlist') {
@@ -181,6 +201,16 @@ async function searchBooks() {
         const response = await fetch(url);
         const data = await response.json();
         resultsDiv.innerHTML = '';
+
+        console.log("Rakuten API URL:", url);
+        console.log("Rakuten API Response:", data);
+
+        if (data.errors) {
+            const errMsg = data.errors.errorMessage || (data.errors[0] && data.errors[0].message) || "Unknown API Error";
+            console.error("Rakuten API Error:", errMsg, data.errors);
+            resultsDiv.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--danger-color);">API Error: ${errMsg}</p>`;
+            return;
+        }
 
         if (data.Items && data.Items.length > 0) {
             data.Items.forEach(item => {
@@ -335,4 +365,61 @@ function renderWishlist() {
     } else {
         container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); margin-top: 40px;">${lang.noWishlist}</p>`;
     }
+}
+
+// 13. Theme Business Logic
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'auto';
+    applyTheme(savedTheme);
+}
+
+function applyTheme(theme) {
+    const body = document.body;
+    let isDark = true;
+    
+    if (theme === 'dark') {
+        isDark = true;
+    } else if (theme === 'light') {
+        isDark = false;
+    } else { // auto
+        const hour = new Date().getHours();
+        isDark = (hour < 6 || hour >= 18);
+    }
+    
+    if (isDark) {
+        body.classList.remove('light-theme');
+    } else {
+        body.classList.add('light-theme');
+    }
+    
+    const themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) {
+        const lang = TRANSLATIONS[currentLang];
+        if (theme === 'light') {
+            themeBtn.innerText = '☀️';
+            themeBtn.title = lang.themeLightTitle || 'Theme: Light (click to change)';
+        } else if (theme === 'dark') {
+            themeBtn.innerText = '🌙';
+            themeBtn.title = lang.themeDarkTitle || 'Theme: Dark (click to change)';
+        } else {
+            themeBtn.innerText = '🌓';
+            themeBtn.title = lang.themeAutoTitle || 'Theme: Auto (click to change)';
+        }
+    }
+}
+
+function toggleTheme() {
+    let currentTheme = localStorage.getItem('theme') || 'auto';
+    let nextTheme = 'auto';
+    
+    if (currentTheme === 'auto') {
+        nextTheme = 'light';
+    } else if (currentTheme === 'light') {
+        nextTheme = 'dark';
+    } else {
+        nextTheme = 'auto';
+    }
+    
+    localStorage.setItem('theme', nextTheme);
+    applyTheme(nextTheme);
 }
