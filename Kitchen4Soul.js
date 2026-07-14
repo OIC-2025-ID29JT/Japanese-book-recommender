@@ -244,13 +244,14 @@ function createBookCard(book) {
     const isSaved = wishlist.some(item => item.isbn === book.isbn);
     const wishlistClass = isSaved ? 'wishlist-btn active' : 'wishlist-btn';
 
-    // Format itemCaption
+    // Format itemCaption for synopsis
     const synopsisText = book.itemCaption ? book.itemCaption.replace(/\n/g, '<br>') : '';
-    
-    // Translation link helper for English mode
-    const translateLinkHtml = currentLang === 'en' 
-        ? `<a href="https://translate.google.com/translate?sl=ja&tl=en&u=${encodeURIComponent(book.itemUrl)}" target="_blank" class="translation-link">🌐 ${lang.translatePage}</a>` 
-        : '';
+
+    // Create a short preview/intro text (teaser) to display directly
+    const cleanCaption = book.itemCaption ? book.itemCaption.replace(/\s+/g, ' ').trim() : '';
+    const introText = cleanCaption 
+        ? (cleanCaption.length > 70 ? cleanCaption.substring(0, 70) + '...' : cleanCaption)
+        : (currentLang === 'ja' ? '紹介文はありません。' : 'No description available.');
 
     card.innerHTML = `
         <div class="card-media">
@@ -262,6 +263,7 @@ function createBookCard(book) {
         </div>
         <h3>${book.title}</h3>
         <p class="card-author">${lang.author}: ${book.author || '---'}</p>
+        <p class="card-intro" title="${cleanCaption.replace(/"/g, '&quot;')}">${introText}</p>
         
         ${synopsisText ? `
             <button class="synopsis-toggle-btn"><span>▶</span> ${lang.showSynopsis}</button>
@@ -273,7 +275,6 @@ function createBookCard(book) {
             <button class="card-btn card-btn-secondary share-btn">${lang.share}</button>
             <button class="${wishlistClass}" title="Wishlist">❤️</button>
         </div>
-        ${translateLinkHtml}
     `;
 
     // 10. Card Sub-Interactions Event Listeners
